@@ -27,6 +27,24 @@
                 <a href="${data.u}" class="btn">Xem Bảng Báo Giá PDF</a>
             `;
         }
-    </script>
-</body>
-</html>
+    <script>
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get('d');
+    if (d) {
+        const data = JSON.parse(decodeURIComponent(escape(atob(d))));
+        document.getElementById('content').innerHTML = `
+            <div class="brand">National Life Group</div>
+            <p style="color:#666; font-size:12px">Người hỗ trợ: ${data.s}</p>
+            <div style="border-bottom:1px solid #333; margin:20px 0"></div>
+            <h2>${data.n}</h2>
+            <p style="color:#888">Định danh: ${data.p}</p>
+            
+            <a href="${data.u}" class="btn" target="_blank">Xem Bảng Báo Giá PDF</a>
+            
+            ${data.i ? `<img src="${data.i}" style="width:100%; margin-top:30px; border:1px solid #333;">` : ''}
+            
+            <div style="border-bottom:1px solid #333; margin-top:40px; margin-bottom:20px"></div>
+            <p style="font-size:11px; color:#444">© 2026 Secure Portal. Bảo mật bởi Công Nguyễn.</p>
+        `;
+    }
+</script>
