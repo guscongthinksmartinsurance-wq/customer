@@ -1,40 +1,103 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>NLG - Công cụ tạo Profile khách hàng</title>
+    <title>NLG - Công cụ tạo Profile Siêu Tốc</title>
     <style>
-        body { background: #1a1a1a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 50px; }
-        .form-box { background: #262626; padding: 30px; border-radius: 8px; width: 400px; border: 1px solid #c5a059; }
-        input, select { width: 100%; padding: 10px; margin: 10px 0; background: #333; border: 1px solid #444; color: #fff; box-sizing: border-box;}
-        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; }
-        #result { margin-top: 20px; word-break: break-all; color: #c5a059; font-size: 13px; }
+        body { background: #1a1a1a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .form-box { background: #262626; padding: 30px; border-radius: 8px; width: 450px; border: 1px solid #c5a059; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #c5a059; text-align: center; letter-spacing: 2px; }
+        label { display: block; margin-top: 15px; font-size: 12px; color: #888; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; background: #333; border: 1px solid #444; color: #fff; box-sizing: border-box; border-radius: 4px; }
+        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.3s; }
+        button:hover { background: #fff; }
+        #status { margin-top: 15px; font-size: 13px; text-align: center; color: #c5a059; }
+        #result { margin-top: 20px; word-break: break-all; padding: 15px; background: #111; border: 1px dashed #c5a059; display: none; }
     </style>
 </head>
 <body>
     <div class="form-box">
-        <h2 style="color:#c5a059">TẠO LINK KHÁCH HÀNG</h2>
-        <input type="text" id="name" placeholder="Tên khách hàng">
-        <input type="text" id="phone" placeholder="Số điện thoại khách">
-        <input type="text" id="pdf" placeholder="Link OneDrive file PDF">
+        <h2>TẠO PROFILE KHÁCH</h2>
+        
+        <label>Tên khách hàng:</label>
+        <input type="text" id="name" placeholder="Ví dụ: Dennis Nguyen">
+        
+        <label>Số điện thoại khách:</label>
+        <input type="text" id="phone" placeholder="Ví dụ: 602-xxx-xxxx">
+
+        <label>Chọn Bảng báo giá (PDF):</label>
+        <input type="file" id="pdf_file" accept=".pdf">
+
+        <label>Chọn Hình ảnh khách/Hồ sơ:</label>
+        <input type="file" id="img_file" accept="image/*">
+
+        <label>Người hỗ trợ:</label>
         <select id="staff">
             <option value="Công Nguyễn">Sale Manager: Công Nguyễn</option>
-            <option value="Nhân viên A">Tư vấn viên: Nguyễn Văn A</option>
-            </select>
-        <button onclick="generate()">TẠO LINK GỬI KHÁCH</button>
+            <option value="Nhân viên của anh">Tư vấn viên: [Tên nhân viên]</option>
+        </select>
+
+        <button id="btn-gen" onclick="handleUpload()">BẮT ĐẦU TẠO LINK</button>
+        
+        <div id="status"></div>
         <div id="result"></div>
     </div>
 
     <script>
-        function generate() {
-            const data = {
-                n: document.getElementById('name').value,
-                p: document.getElementById('phone').value,
-                u: document.getElementById('pdf').value,
-                s: document.getElementById('staff').value
-            };
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-            const finalLink = window.location.href.replace('index.html', '') + 'profile.html?d=' + encoded;
-            document.getElementById('result').innerHTML = "Link gửi khách (Copy link này): <br><br> " + finalLink;
+        async function uploadFile(file) {
+            let formData = new FormData();
+            formData.append("file", file);
+            // Sử dụng file.io (Miễn phí, tự xóa sau khi xem hoặc sau 14 ngày để bảo mật)
+            const res = await fetch("https://file.io", { method: "POST", body: formData });
+            const json = await res.json();
+            return json.link;
+        }
+
+        async function uploadImage(file) {
+            let formData = new FormData();
+            formData.append("image", file);
+            // Sử dụng API ImgBB (Cần API Key nếu dùng nhiều, hiện tại dùng demo tạm)
+            const res = await fetch("https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5", { method: "POST", body: formData });
+            const json = await res.json();
+            return json.data.url;
+        }
+
+        async function handleUpload() {
+            const btn = document.getElementById('btn-gen');
+            const status = document.getElementById('status');
+            const resBox = document.getElementById('result');
+            
+            const pdfFile = document.getElementById('pdf_file').files[0];
+            const imgFile = document.getElementById('img_file').files[0];
+
+            if (!pdfFile) { alert("Vui lòng chọn file PDF!"); return; }
+
+            btn.disabled = true;
+            status.innerText = "Đang xử lý dữ liệu bảo mật... Vui lòng đợi.";
+
+            try {
+                const pdfUrl = await uploadFile(pdfFile);
+                let imgUrl = "";
+                if (imgFile) { imgUrl = await uploadImage(imgFile); }
+
+                const data = {
+                    n: document.getElementById('name').value,
+                    p: document.getElementById('phone').value,
+                    u: pdfUrl,
+                    i: imgUrl,
+                    s: document.getElementById('staff').value
+                };
+
+                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+                const finalLink = window.location.href.replace('index.html', '') + 'profile.html?d=' + encoded;
+                
+                status.innerText = "✅ Đã tạo xong!";
+                resBox.style.display = "block";
+                resBox.innerHTML = "Link gửi khách: <br><br><strong>" + finalLink + "</strong>";
+            } catch (err) {
+                status.innerText = "❌ Lỗi upload. Vui lòng thử lại.";
+                console.error(err);
+            }
+            btn.disabled = false;
         }
     </script>
 </body>
