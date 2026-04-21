@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>National Life Group - Client Portal</title>
+    <style>
+        body { background: #0a0a0a; color: #fff; font-family: "Times New Roman", serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { max-width: 400px; width: 100%; border: 1px solid #c5a059; padding: 40px; text-align: center; }
+        .brand { color: #c5a059; letter-spacing: 5px; font-size: 18px; text-transform: uppercase; }
+        h2 { font-weight: normal; font-size: 28px; margin: 20px 0; }
+        .btn { display: block; padding: 15px; background: #c5a059; color: #000; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container" id="content"></div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const d = params.get('d');
+        if (d) {
+            const data = JSON.parse(decodeURIComponent(escape(atob(d))));
+            document.getElementById('content').innerHTML = `
+                <div class="brand">National Life Group</div>
+                <p style="color:#666; font-size:12px">Người hỗ trợ: ${data.s}</p>
+                <div style="border-bottom:1px solid #333; margin:20px 0"></div>
+                <h2>${data.n}</h2>
+                <p style="color:#888">Định danh: ${data.p}</p>
+                <a href="${data.u}" class="btn">Xem Bảng Báo Giá PDF</a>
+            `;
+        }
+    </script>
+</body>
+</html>

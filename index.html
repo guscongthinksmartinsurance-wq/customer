@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NLG - Công cụ tạo Profile khách hàng</title>
+    <style>
+        body { background: #1a1a1a; color: #fff; font-family: sans-serif; display: flex; justify-content: center; padding: 50px; }
+        .form-box { background: #262626; padding: 30px; border-radius: 8px; width: 400px; border: 1px solid #c5a059; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; background: #333; border: 1px solid #444; color: #fff; box-sizing: border-box;}
+        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; }
+        #result { margin-top: 20px; word-break: break-all; color: #c5a059; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="form-box">
+        <h2 style="color:#c5a059">TẠO LINK KHÁCH HÀNG</h2>
+        <input type="text" id="name" placeholder="Tên khách hàng">
+        <input type="text" id="phone" placeholder="Số điện thoại khách">
+        <input type="text" id="pdf" placeholder="Link OneDrive file PDF">
+        <select id="staff">
+            <option value="Công Nguyễn">Sale Manager: Công Nguyễn</option>
+            <option value="Nhân viên A">Tư vấn viên: Nguyễn Văn A</option>
+            </select>
+        <button onclick="generate()">TẠO LINK GỬI KHÁCH</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function generate() {
+            const data = {
+                n: document.getElementById('name').value,
+                p: document.getElementById('phone').value,
+                u: document.getElementById('pdf').value,
+                s: document.getElementById('staff').value
+            };
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            const finalLink = window.location.href.replace('index.html', '') + 'profile.html?d=' + encoded;
+            document.getElementById('result').innerHTML = "Link gửi khách (Copy link này): <br><br> " + finalLink;
+        }
+    </script>
+</body>
+</html>
