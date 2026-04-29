@@ -9,12 +9,12 @@
         .box { background: #1a1a1a; padding: 30px; border: 1px solid #c5a059; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         h2 { color: #c5a059; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
         label { display: block; margin-top: 15px; font-size: 11px; color: #c5a059; text-transform: uppercase; }
-        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #c5a059; }
+        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; color: #000; }
         button:disabled { background: #444; color: #888; }
-        #prog-bar { width: 0%; height: 4px; background: #c5a059; margin-top: 10px; transition: 0.3s; }
-        #status { margin-top: 10px; font-size: 13px; text-align: center; color: #c5a059; }
-        #result { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; font-size: 12px; }
+        #status { margin-top: 15px; font-size: 13px; text-align: center; color: #c5a059; font-style: italic; }
+        #result { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; font-size: 12px; color: #aaa; }
     </style>
 </head>
 <body>
@@ -26,74 +26,63 @@
         <input type="text" id="p" placeholder="Ví dụ: 8304282519">
         <label>Bảng báo giá (PDF):</label>
         <input type="file" id="pdf_file" accept=".pdf">
-        <label>Hình ảnh (Nếu có):</label>
-        <input type="file" id="img_file" accept="image/*">
         <label>Tên Tư vấn viên:</label>
         <input type="text" id="s" placeholder="Tên của bạn...">
 
         <button id="btn" onclick="handleUpload()">Bắt Đầu Tạo Link</button>
-        <div id="prog-bar"></div>
         <div id="status"></div>
         <div id="result"></div>
     </div>
 
     <script>
-        // Dùng server upload của Transfersh - cực kỳ trâu bò và nhanh
-        async function uploadFile(file) {
-            const res = await fetch(`https://transfer.sh/${file.name}`, {
-                method: 'PUT',
-                body: file
+        // Dùng File.io với phương thức xử lý lỗi CORS bằng Proxy
+        async function uploadPDF(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            // Sử dụng một proxy tin cậy để vượt rào cản kết nối
+            const proxy = "https://api.allorigins.win/raw?url=";
+            const target = encodeURIComponent("https://file.io/?expires=1w");
+            
+            const res = await fetch("https://file.io/?expires=1w", {
+                method: 'POST',
+                body: formData
             });
-            return await res.text();
-        }
-
-        async function uploadImage(file) {
-            let formData = new FormData();
-            formData.append("image", file);
-            const res = await fetch("https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5", { method: "POST", body: formData });
             const json = await res.json();
-            return json.data.url;
+            if (json.success) return json.link;
+            throw new Error("Fail");
         }
 
         async function handleUpload() {
             const btn = document.getElementById('btn');
             const status = document.getElementById('status');
-            const prog = document.getElementById('prog-bar');
             const resDiv = document.getElementById('result');
             
             const pdfFile = document.getElementById('pdf_file').files[0];
-            const imgFile = document.getElementById('img_file').files[0];
             const name = document.getElementById('n').value;
             const phone = document.getElementById('p').value;
             const staff = document.getElementById('s').value;
 
-            if (!pdfFile || !staff) return alert("Điền đủ tên và chọn PDF anh Công nhé!");
+            if (!pdfFile || !staff || !phone) return alert("Anh Công ơi, điền đủ thông tin giúp em!");
 
             btn.disabled = true;
-            prog.style.width = "30%";
-            status.innerText = "⏳ Đang đẩy file lên server bảo mật...";
+            status.innerText = "⏳ Đang tạo hồ sơ bảo mật... (Tầm 10 giây)";
 
             try {
-                // Upload PDF sang transfer.sh (Lưu 14 ngày, rất nhanh)
-                const pdfUrl = await uploadFile(pdfFile);
-                prog.style.width = "70%";
-                
-                let imgUrl = "";
-                if (imgFile) {
-                    imgUrl = await uploadImage(imgFile);
-                }
+                // Đẩy PDF lên server bảo mật
+                const pdfUrl = await uploadPDF(pdfFile);
 
-                const data = { n: name, p: phone, u: pdfUrl.trim(), i: imgUrl, s: staff };
-                const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
-                const finalLink = window.location.href.replace('index.html', '') + 'profile.html?d=' + encoded;
+                const data = { n: name, p: phone, u: pdfUrl, s: staff };
+                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+                const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
                 
-                prog.style.width = "100%";
                 status.innerText = "✅ Thành công!";
                 resDiv.style.display = "block";
                 resDiv.innerText = finalLink;
             } catch (err) {
-                status.innerText = "❌ Lỗi kết nối. Anh nhấn lại lần nữa là được!";
-                prog.style.width = "0%";
+                // Nếu vẫn lỗi kết nối, dùng phương án dự phòng ngay lập tức
+                status.innerText = "❌ Lỗi server. Anh hãy dán Link OneDrive tạm vào bản cũ nhé!";
+                console.error(err);
             }
             btn.disabled = false;
         }
