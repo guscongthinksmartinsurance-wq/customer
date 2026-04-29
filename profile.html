@@ -104,8 +104,8 @@
                 const data = JSON.parse(decodeURIComponent(escape(atob(d))));
                 document.getElementById('main').innerHTML = `
                     <div class="brand">National Life Group</div>
-                    <p class="manager-info">Sale Manager: Công Nguyễn</p>
-                    <p class="manager-info" style="font-size: 11px;">Hỗ trợ bởi: ${data.s}</p>
+                    <p class="manager-info">Sale Manager: Công Thái</p>
+                    <p class="manager-info" style="font-size: 11px;">Hỗ trợ: ${data.s}</p>
                     <div class="divider"></div>
                     <h2>${data.n || "Khách hàng"}</h2>
                     <p class="client-phone">Số điện thoại định danh: ${data.p || "N/A"}</p>
