@@ -8,16 +8,16 @@
         :root { --navy: #003366; --bg: #f9fafb; }
         body { background: var(--bg); font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .card { max-width: 400px; width: 100%; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 6px solid var(--navy); }
-        .ad-img { width: 100%; height: auto; display: block; }
-        .content { padding: 30px; text-align: center; }
+        .ad-img { width: 100%; height: auto; display: block; min-height: 200px; background: #eee; object-fit: cover; }
+        .content { padding: 35px; text-align: center; }
         .brand { color: var(--navy); letter-spacing: 2px; text-transform: uppercase; font-size: 14px; font-weight: bold; }
-        .divider { border-bottom: 1px solid #eee; margin: 20px 0; }
-        h2 { font-weight: bold; font-size: 26px; margin: 0; color: #111; }
-        .btn { display: block; padding: 18px; background: var(--navy); color: #fff; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 25px; border-radius: 6px; }
+        .divider { border-bottom: 1px solid #eee; margin: 25px 0; }
+        h2 { font-weight: bold; font-size: 28px; margin: 0; color: #111; }
+        .btn { display: flex; align-items: center; justify-content: center; padding: 18px; background: var(--navy); color: #fff; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 30px; border-radius: 6px; letter-spacing: 1px; font-size: 14px; }
     </style>
 </head>
 <body>
-    <div id="main" class="card">Đang mở hồ sơ bảo mật...</div>
+    <div id="main" class="card">Đang mở hồ sơ...</div>
     <script>
         try {
             const params = new URLSearchParams(window.location.search);
@@ -30,8 +30,8 @@
                     <p style="font-size:11px; color:#777; margin:5px 0;">Manager: Công Nguyễn | Hỗ trợ: ${data.s}</p>
                     <div class="divider"></div>
                     <h2>${data.n}</h2>
-                    <p style="color:#888; font-size:13px; margin-top:10px;">ID định danh: ${data.p}</p>
-                    <a href="${data.u}" class="btn" download="Bao-Gia-${data.n}.pdf">📄 XEM BÁO GIÁ (PDF)</a>
+                    <p style="color:#888; font-size:14px; margin-top:10px;">ID định danh: ${data.p}</p>
+                    <a href="${data.u}" class="btn" target="_blank">📄 XEM BÁO GIÁ (PDF)</a>
                     <p style="font-size:10px; color:#aaa; margin-top:30px;">Hồ sơ mã hóa bảo mật ThinkSmart.</p>
                 </div>
             `;
