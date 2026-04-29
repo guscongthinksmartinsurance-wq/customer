@@ -10,30 +10,32 @@
         h2 { color: #c5a059; text-align: center; letter-spacing: 3px; text-transform: uppercase; }
         label { display: block; margin-top: 15px; font-size: 11px; color: #c5a059; text-transform: uppercase; }
         input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #c5a059; }
-        button { width: 100%; padding: 16px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; transition: 0.3s; }
-        button:hover { background: #fff; }
+        input[type="file"] { font-size: 12px; }
+        button { width: 100%; padding: 16px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
+        button:disabled { background: #444; }
+        #status { margin-top: 15px; font-size: 13px; text-align: center; color: #c5a059; }
         #result-box { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; }
     </style>
 </head>
 <body>
     <div class="form-box">
-        <h2>Tạo Hồ Sơ Siêu Tốc</h2>
+        <h2>Tạo Hồ Sơ Tức Thì</h2>
         
         <label>Tên khách hàng:</label>
-        <input type="text" id="name" placeholder="Nhập tên khách...">
+        <input type="text" id="name" placeholder="Tên khách...">
         
-        <label>Link PDF (OneDrive/Google Drive):</label>
-        <input type="text" id="pdf_url" placeholder="Dán link tài liệu vào đây...">
+        <label>Bảng báo giá (PDF):</label>
+        <input type="file" id="pdf_file" accept=".pdf">
 
-        <label>Link Hình ảnh (Nếu có):</label>
-        <input type="text" id="img_url" placeholder="Dán link ảnh vào đây...">
+        <label>Hình ảnh chân dung (Nếu có):</label>
+        <input type="file" id="img_file" accept="image/*">
 
         <label>Tên Tư vấn viên:</label>
         <input type="text" id="staff" placeholder="Tên của bạn...">
 
-        <button onclick="generate()">Tạo link ngay lập tức</button>
+        <button id="btn-gen" onclick="handleUpload()">Bắt đầu tạo link</button>
         
+        <div id="status"></div>
         <div id="result-box">
             <span style="color: #c5a059; font-size: 12px;">LINK GỬI KHÁCH:</span>
             <div id="final-link" style="font-size: 11px; color: #aaa; margin-top: 10px;"></div>
@@ -41,21 +43,53 @@
     </div>
 
     <script>
-        function generate() {
-            const data = {
-                n: document.getElementById('name').value || "Khách hàng",
-                u: document.getElementById('pdf_url').value,
-                i: document.getElementById('img_url').value,
-                s: document.getElementById('staff').value
-            };
+        async function uploadToFileIo(file) {
+            let formData = new FormData();
+            formData.append("file", file);
+            // file.io sẽ tự hủy sau 1 lần xem hoặc sau 14 ngày - cực kỳ bảo mật
+            const res = await fetch("https://file.io/?expires=1w", { method: "POST", body: formData });
+            const json = await res.json();
+            return json.link;
+        }
 
-            if(!data.u || !data.s) { alert("Vui lòng nhập Link tài liệu và Tên tư vấn viên!"); return; }
+        async function uploadToImgBB(file) {
+            let formData = new FormData();
+            formData.append("image", file);
+            const res = await fetch("https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5", { method: "POST", body: formData });
+            const json = await res.json();
+            return json.data.url;
+        }
 
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-            const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
+        async function handleUpload() {
+            const btn = document.getElementById('btn-gen');
+            const status = document.getElementById('status');
+            const resBox = document.getElementById('result-box');
             
-            document.getElementById('result-box').style.display = "block";
-            document.getElementById('final-link').innerText = finalLink;
+            const pdfFile = document.getElementById('pdf_file').files[0];
+            const imgFile = document.getElementById('img_file').files[0];
+            const staff = document.getElementById('staff').value;
+
+            if (!pdfFile || !staff) { alert("Vui lòng chọn PDF và điền tên nhân viên!"); return; }
+
+            btn.disabled = true;
+            status.innerText = "⏳ Đang mã hóa và tải lên... (Khoảng 15-30 giây)";
+
+            try {
+                const pdfUrl = await uploadToFileIo(pdfFile);
+                let imgUrl = "";
+                if (imgFile) { imgUrl = await uploadToImgBB(imgFile); }
+
+                const data = { n: document.getElementById('name').value, u: pdfUrl, i: imgUrl, s: staff };
+                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+                const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
+                
+                status.innerText = "✅ Hoàn tất!";
+                resBox.style.display = "block";
+                document.getElementById('final-link').innerText = finalLink;
+            } catch (err) {
+                status.innerText = "❌ Lỗi: File quá nặng hoặc lỗi mạng. Thử lại nhé!";
+            }
+            btn.disabled = false;
         }
     </script>
 </body>
