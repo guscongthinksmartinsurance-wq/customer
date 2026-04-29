@@ -46,16 +46,19 @@
     </div>
 
     <script>
-        async function uploadToFileIo(file) {
+        async function uploadFile(file) {
             let formData = new FormData();
-            formData.append("file", file);
-            const res = await fetch("https://file.io/?expires=1w", { method: "POST", body: formData });
-            const json = await res.json();
-            if (!json.success) throw new Error("PDF failed");
-            return json.link;
+            formData.append("reqtype", "fileupload");
+            formData.append("fileToUpload", file);
+            // Dùng Catbox (Nhanh và ổn định hơn cho PDF)
+            const res = await fetch("https://cors-anywhere.herokuapp.com/https://catbox.moe/user/api.php", { 
+                method: "POST", 
+                body: formData 
+            });
+            return await res.text();
         }
 
-        async function uploadToImgBB(file) {
+        async function uploadImage(file) {
             let formData = new FormData();
             formData.append("image", file);
             const res = await fetch("https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5", { method: "POST", body: formData });
@@ -75,27 +78,28 @@
             const staff = document.getElementById('staff').value;
 
             if (!pdfFile || !staff || !phone) { 
-                alert("Vui lòng điền đủ: Tên khách, Số điện thoại, Tên bạn và chọn file PDF!"); 
+                alert("Vui lòng điền đủ thông tin!"); 
                 return; 
             }
 
             btn.disabled = true;
-            status.innerText = "⏳ Đang xử lý tài liệu... (Vui lòng đợi giây lát)";
+            status.innerText = "⏳ Đang tăng tốc xử lý... Vui lòng đợi trong giây lát.";
 
             try {
-                const pdfUrl = await uploadToFileIo(pdfFile);
+                const pdfUrl = await uploadFile(pdfFile);
                 let imgUrl = "";
-                if (imgFile) { imgUrl = await uploadToImgBB(imgFile); }
+                if (imgFile) { imgUrl = await uploadImage(imgFile); }
 
-                const data = { n: name, p: phone, u: pdfUrl, i: imgUrl, s: staff };
+                const data = { n: name, p: phone, u: pdfUrl.trim(), i: imgUrl, s: staff };
                 const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
                 const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
                 
-                status.innerText = "✅ Đã tạo xong hồ sơ!";
+                status.innerText = "✅ Đã tạo xong!";
                 resBox.style.display = "block";
                 document.getElementById('final-link').innerText = finalLink;
             } catch (err) {
-                status.innerText = "❌ Lỗi: File quá nặng hoặc server bận. Hãy thử lại.";
+                status.innerText = "❌ Lỗi kết nối. Anh hãy thử nhấn lại lần nữa nhé!";
+                console.error(err);
             }
             btn.disabled = false;
         }
