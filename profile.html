@@ -3,146 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ThinkSmart Insurance - Secure Secure Portal</title>
     <style>
-        /* Tông màu Corporate: Sạch sẽ, Vững chãi, Tin cậy */
-        :root {
-            --corporate-blue: #003366; 
-            --light-bg: #f9fafb;
-            --card-shadow: 0 15px 35px rgba(0,0,0,0.08);
-            --text-main: #222;
-        }
-
-        body { 
-            background-color: var(--light-bg); 
-            color: var(--text-main); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; /* Font không chân chuyên nghiệp */
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 20px; 
-        }
-
-        .card { 
-            max-width: 420px; 
-            width: 100%; 
-            background: #fff; 
-            border-radius: 12px; 
-            padding: 45px; 
-            text-align: center; 
-            box-shadow: var(--card-shadow); 
-            border-top: 6px solid var(--corporate-blue); /* Điểm nhấn Corporate */
-        }
-
-        .brand-header {
-            margin-bottom: 30px;
-        }
-
-        .brand-logo { 
-            color: var(--corporate-blue); 
-            letter-spacing: 2px; 
-            text-transform: uppercase; 
-            font-size: 15px; 
-            font-weight: 700; 
-        }
-
-        .manager-label { 
-            color: #777; 
-            font-size: 12px; 
-            margin: 5px 0 0 0; 
-            font-weight: 500;
-        }
-
-        .staff-label { 
-            color: #888; 
-            font-size: 11px; 
-            margin: 3px 0 0 0; 
-        }
-
-        .divider { 
-            border-bottom: 1px solid #e5e7eb; 
-            margin: 25px 0; 
-        }
-
-        h2 { 
-            font-weight: 700; 
-            font-size: 30px; 
-            margin: 0; 
-            color: #111; 
-        }
-
-        .phone-label { 
-            color: #777; 
-            font-size: 14px; 
-            margin: 8px 0 0 0; 
-            font-family: monospace; /* Chuyên nghiệp cho SĐT */
-        }
-
-        .btn { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            padding: 18px; 
-            background-color: var(--corporate-blue); 
-            color: #fff; 
-            text-decoration: none; 
-            font-weight: bold; 
-            text-transform: uppercase; 
-            margin-top: 40px; 
-            letter-spacing: 1.5px; 
-            border-radius: 6px; 
-            font-size: 15px; 
-            transition: background 0.2s; 
-        }
-        
-        .btn:hover { 
-            background-color: #004d99;
-        }
-
-        /* Thêm icon PDF nhỏ */
-        .btn-icon {
-            margin-right: 10px;
-            font-size: 18px;
-        }
-
-        .footer { 
-            margin-top: 50px; 
-            font-size: 11px; 
-            color: #aaa; 
-            border-top: 1px solid #f3f4f6; 
-            padding-top: 20px; 
-            line-height: 1.5;
-        }
+        :root { --corporate-blue: #003366; --light-bg: #f9fafb; }
+        body { background-color: var(--light-bg); color: #222; font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { max-width: 420px; width: 100%; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 6px solid var(--corporate-blue); }
+        .ad-img { width: 100%; height: auto; display: block; background: #eee; }
+        .content { padding: 35px; text-align: center; }
+        .brand-logo { color: var(--corporate-blue); letter-spacing: 2px; text-transform: uppercase; font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+        .manager { color: #777; font-size: 12px; margin: 0; }
+        .divider { border-bottom: 1px solid #eee; margin: 25px 0; }
+        h2 { font-weight: 700; font-size: 28px; margin: 0; color: #111; }
+        .btn { display: flex; align-items: center; justify-content: center; padding: 18px; background: var(--corporate-blue); color: #fff; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 30px; border-radius: 6px; letter-spacing: 1px; }
+        .footer { margin-top: 40px; font-size: 10px; color: #aaa; border-top: 1px solid #f9f9f9; padding-top: 15px; }
     </style>
 </head>
 <body>
-    <div id="main" class="card">Đang mở hồ sơ bảo mật...</div>
+    <div id="main" class="card">Đang mở hồ sơ...</div>
     <script>
         try {
             const params = new URLSearchParams(window.location.search);
             const d = params.get('d');
-            if (d) {
-                const data = JSON.parse(decodeURIComponent(escape(atob(d))));
-                document.getElementById('main').innerHTML = `
-                    <div class="brand-header">
-                        <div class="brand-logo">National Life Group</div>
-                        <p class="manager-label">Sale Manager: Công Thái</p>
-                        <p class="staff-label">Người hỗ trợ: ${data.s}</p>
-                    </div>
+            const data = JSON.parse(decodeURIComponent(escape(atob(d))));
+            document.getElementById('main').innerHTML = `
+                <img src="${data.i}" class="ad-img" alt="Illustration">
+                <div class="content">
+                    <div class="brand-logo">National Life Group</div>
+                    <p class="manager">Sale Manager: Công Nguyễn</p>
+                    <p style="font-size:10px; color:#999; margin:3px 0;">Consultant: ${data.s}</p>
                     <div class="divider"></div>
-                    <h2>${data.n || "Khách hàng"}</h2>
-                    <p class="phone-label">Mã định danh (US): ${data.p || "Bảo mật"}</p>
-                    <a href="${data.u}" class="btn" target="_blank">
-                        <span class="btn-icon">📄</span> Xem Bảng Báo Giá (PDF)
-                    </a>
-                    <div class="footer">Đây là hồ sơ cá nhân bảo mật, được mã hóa. <br> Tự động hủy sau 24h.</div>
-                `;
-            } else {
-                document.getElementById('main').innerHTML = "Lỗi truy cập hoặc hồ sơ đã hết hạn.";
-            }
-        } catch (e) { document.getElementById('main').innerHTML = "Lỗi mã hóa dữ liệu. Không thể mở hồ sơ."; }
+                    <h2>${data.n}</h2>
+                    <p style="color:#777; font-size:14px; margin-top:10px;">ID: ${data.p}</p>
+                    <a href="${data.u}" class="btn" target="_blank">📄 Xem Bảng Báo Giá PDF</a>
+                    <div class="footer">Hồ sơ cá nhân bảo mật. Mã hóa 256-bit. <br> Tự động hủy sau 24h.</div>
+                </div>
+            `;
+        } catch(e) { document.getElementById('main').innerHTML = "Lỗi truy cập hồ sơ."; }
     </script>
 </body>
 </html>
