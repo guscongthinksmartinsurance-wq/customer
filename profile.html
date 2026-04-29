@@ -1,41 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThinkSmart Insurance - Portal</title>
     <style>
-        :root { --navy: #003366; --bg: #f9fafb; }
-        body { background: var(--bg); font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .card { max-width: 400px; width: 100%; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 6px solid var(--navy); }
-        .ad-img { width: 100%; height: auto; display: block; min-height: 200px; background: #eee; object-fit: cover; }
-        .content { padding: 35px; text-align: center; }
-        .brand { color: var(--navy); letter-spacing: 2px; text-transform: uppercase; font-size: 14px; font-weight: bold; }
-        .divider { border-bottom: 1px solid #eee; margin: 25px 0; }
-        h2 { font-weight: bold; font-size: 28px; margin: 0; color: #111; }
-        .btn { display: flex; align-items: center; justify-content: center; padding: 18px; background: var(--navy); color: #fff; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 30px; border-radius: 6px; letter-spacing: 1px; font-size: 14px; }
+        :root { --navy: #003366; --bg: #f2f4f7; }
+        body { background: var(--bg); font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; }
+        
+        /* Khung Card chính */
+        .card { 
+            max-width: 400px; 
+            width: 100%; 
+            background: #fff; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border: 1px solid #eef0f2;
+            display: flex;
+            flex-direction: column; /* Sắp xếp theo chiều dọc */
+        }
+
+        /* Phần thông tin đưa lên trên cùng */
+        .content { padding: 35px 30px 30px 30px; text-align: center; }
+        
+        .brand-header { margin-bottom: 20px; }
+        .brand-logo { color: var(--navy); letter-spacing: 2px; text-transform: uppercase; font-size: 13px; font-weight: 800; }
+        .info-sub { font-size: 11px; color: #888; margin-top: 4px; }
+
+        .divider { border-bottom: 1px solid #f0f0f0; margin: 20px 0; }
+
+        h2 { font-weight: 700; font-size: 28px; margin: 0; color: #1a1a1a; letter-spacing: -0.5px; }
+        .client-id { color: #666; font-size: 14px; margin-top: 6px; font-family: "Courier New", Courier, monospace; }
+
+        .btn { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 17px; 
+            background: var(--navy); 
+            color: #fff; 
+            text-decoration: none; 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            margin-top: 25px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            letter-spacing: 1px;
+            transition: 0.2s ease;
+        }
+        .btn:hover { background: #002244; }
+        .btn-icon { margin-right: 8px; font-size: 16px; }
+
+        /* Phần Poster đưa xuống dưới cùng */
+        .ad-container { padding: 10px 12px 12px 12px; background-color: #fafafa; border-top: 1px solid #eee; }
+        .ad-img { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            border-radius: 8px; 
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .footer { 
+            margin-top: 20px; 
+            font-size: 10px; 
+            color: #bbb; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <div id="main" class="card">Đang mở hồ sơ...</div>
+    <div id="main" class="card">Đang mở hồ sơ bảo mật...</div>
     <script>
         try {
             const params = new URLSearchParams(window.location.search);
             const d = params.get('d');
             const data = JSON.parse(decodeURIComponent(escape(atob(d))));
+            
+            // Đảo ngược thứ tự: Content trước, Img sau
             document.getElementById('main').innerHTML = `
-                <img src="${data.i}" class="ad-img">
                 <div class="content">
-                    <div class="brand">National Life Group</div>
-                    <p style="font-size:11px; color:#777; margin:5px 0;">Manager: Công Nguyễn | Hỗ trợ: ${data.s}</p>
+                    <div class="brand-header">
+                        <div class="brand-logo">National Life Group</div>
+                        <p class="info-sub">Manager: Công Nguyễn | Hỗ trợ: ${data.s}</p>
+                    </div>
                     <div class="divider"></div>
                     <h2>${data.n}</h2>
-                    <p style="color:#888; font-size:14px; margin-top:10px;">ID định danh: ${data.p}</p>
-                    <a href="${data.u}" class="btn" target="_blank">📄 XEM BÁO GIÁ (PDF)</a>
-                    <p style="font-size:10px; color:#aaa; margin-top:30px;">Hồ sơ mã hóa bảo mật ThinkSmart.</p>
+                    <p class="client-id">ID: ${data.p}</p>
+                    <a href="${data.u}" class="btn" target="_blank">
+                        <span class="btn-icon">📄</span> Xem Bảng Báo Giá PDF
+                    </a>
+                    <div class="footer">Hồ sơ bảo mật ThinkSmart</div>
+                </div>
+                <div class="ad-container">
+                    <img src="${data.i}" class="ad-img" alt="Illustration">
                 </div>
             `;
-        } catch(e) { document.getElementById('main').innerHTML = "Lỗi truy cập hồ sơ."; }
+        } catch(e) { document.getElementById('main').innerHTML = "<div style='padding:40px'>Lỗi truy cập hồ sơ.</div>"; }
     </script>
 </body>
 </html>
