@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThinkSmart Insurance - Portal</title>
     <style>
         :root { --navy: #003366; --bg: #f9fafb; }
         body { background: var(--bg); font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .card { max-width: 400px; width: 100%; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border-top: 6px solid var(--navy); }
-        .ad-img { width: 100%; height: auto; display: block; background: #eee; }
-        .content { padding: 35px; text-align: center; }
+        .ad-img { width: 100%; height: auto; display: block; }
+        .content { padding: 30px; text-align: center; }
         .brand { color: var(--navy); letter-spacing: 2px; text-transform: uppercase; font-size: 14px; font-weight: bold; }
-        .divider { border-bottom: 1px solid #eee; margin: 25px 0; }
-        h2 { font-weight: bold; font-size: 28px; margin: 0; color: #111; }
-        .btn { display: block; padding: 18px; background: var(--navy); color: #fff; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 30px; border-radius: 6px; }
+        .divider { border-bottom: 1px solid #eee; margin: 20px 0; }
+        h2 { font-weight: bold; font-size: 26px; margin: 0; color: #111; }
+        .btn { display: block; padding: 18px; background: var(--navy); color: #fff; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 25px; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <div id="main" class="card">Đang mở hồ sơ...</div>
+    <div id="main" class="card">Đang mở hồ sơ bảo mật...</div>
     <script>
         try {
             const params = new URLSearchParams(window.location.search);
@@ -26,12 +27,12 @@
                 <img src="${data.i}" class="ad-img">
                 <div class="content">
                     <div class="brand">National Life Group</div>
-                    <p style="font-size:12px; color:#777; margin:5px 0;">Sale Manager: Công Nguyễn</p>
+                    <p style="font-size:11px; color:#777; margin:5px 0;">Manager: Công Nguyễn | Hỗ trợ: ${data.s}</p>
                     <div class="divider"></div>
                     <h2>${data.n}</h2>
-                    <p style="color:#888; font-size:14px; margin-top:10px;">ID: ${data.p}</p>
-                    <a href="${data.u}" class="btn" download="Bao-Gia-${data.n}.pdf">📄 TẢI BÁO GIÁ PDF</a>
-                    <p style="font-size:10px; color:#aaa; margin-top:30px;">Hồ sơ bảo mật ThinkSmart Insurance</p>
+                    <p style="color:#888; font-size:13px; margin-top:10px;">ID định danh: ${data.p}</p>
+                    <a href="${data.u}" class="btn" download="Bao-Gia-${data.n}.pdf">📄 XEM BÁO GIÁ (PDF)</a>
+                    <p style="font-size:10px; color:#aaa; margin-top:30px;">Hồ sơ mã hóa bảo mật ThinkSmart.</p>
                 </div>
             `;
         } catch(e) { document.getElementById('main').innerHTML = "Lỗi truy cập hồ sơ."; }
