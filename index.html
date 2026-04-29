@@ -3,113 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NLG - Công cụ tạo Profile Siêu Tốc</title>
+    <title>NLG - Creator</title>
     <style>
-        body { background: #121212; color: #fff; font-family: 'Times New Roman', serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .form-box { background: #1a1a1a; padding: 40px; border: 1px solid #c5a059; width: 100%; max-width: 450px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); }
-        h2 { color: #c5a059; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 30px; }
+        body { background: #121212; color: #fff; font-family: serif; display: flex; justify-content: center; padding: 20px; }
+        .box { background: #1a1a1a; padding: 30px; border: 1px solid #c5a059; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #c5a059; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
         label { display: block; margin-top: 15px; font-size: 11px; color: #c5a059; text-transform: uppercase; }
-        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; outline: none; border-radius: 2px; }
-        input:focus { border-color: #c5a059; }
-        input[type="file"] { font-size: 12px; padding: 10px; background: #222; cursor: pointer; }
-        button { width: 100%; padding: 16px; background: #c5a059; color: #000; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
-        button:hover { background: #fff; }
-        button:disabled { background: #444; color: #888; }
-        #status { margin-top: 15px; font-size: 13px; text-align: center; color: #c5a059; font-style: italic; }
-        #result-box { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; }
+        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+        #result { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; font-size: 12px; color: #aaa; }
     </style>
 </head>
 <body>
-    <div class="form-box">
-        <h2>Tạo Hồ Sơ Tức Thì</h2>
-        
+    <div class="box">
+        <h2>Tạo Hồ Sơ Khách</h2>
         <label>Tên khách hàng:</label>
-        <input type="text" id="name" placeholder="Ví dụ: Dennis Nguyen">
-        
-        <label>Số điện thoại khách:</label>
-        <input type="text" id="phone" placeholder="Số điện thoại nhận tin...">
-
-        <label>Bảng báo giá (PDF):</label>
-        <input type="file" id="pdf_file" accept=".pdf">
-
-        <label>Hình ảnh hồ sơ (Nếu có):</label>
-        <input type="file" id="img_file" accept="image/*">
-
+        <input type="text" id="n" placeholder="Ví dụ: Anh Dennis">
+        <label>Số điện thoại:</label>
+        <input type="text" id="p" placeholder="Ví dụ: 8304282519">
+        <label>Link PDF (OneDrive):</label>
+        <input type="text" id="u" placeholder="Dán link PDF vào đây...">
         <label>Tên Tư vấn viên:</label>
-        <input type="text" id="staff" placeholder="Nhập tên của bạn...">
-
-        <button id="btn-gen" onclick="handleUpload()">Bắt đầu tạo link</button>
-        
-        <div id="status"></div>
-        <div id="result-box">
-            <span style="color: #c5a059; font-size: 12px; font-weight: bold;">LINK GỬI KHÁCH:</span>
-            <div id="final-link" style="font-size: 11px; color: #aaa; margin-top: 10px;"></div>
-        </div>
+        <input type="text" id="s" placeholder="Tên của bạn...">
+        <button onclick="gen()">Tạo Link Gửi Khách</button>
+        <div id="result"></div>
     </div>
-
     <script>
-        // Sử dụng một dịch vụ upload mạnh mẽ và hỗ trợ CORS tốt hơn
-        async function uploadFile(file) {
-            let formData = new FormData();
-            formData.append("file", file);
-            // Sử dụng dịch vụ tmpfiles.org - Tốc độ cao và link trực tiếp
-            const res = await fetch("https://tmpfiles.org/api/v1/upload", { 
-                method: "POST", 
-                body: formData 
-            });
-            const json = await res.json();
-            if (json.status === "success") {
-                // Chuyển link từ /download/ sang link trực tiếp
-                return json.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
-            } else {
-                throw new Error("Upload failed");
-            }
-        }
-
-        async function uploadImage(file) {
-            let formData = new FormData();
-            formData.append("image", file);
-            const res = await fetch("https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5", { method: "POST", body: formData });
-            const json = await res.json();
-            return json.data.url;
-        }
-
-        async function handleUpload() {
-            const btn = document.getElementById('btn-gen');
-            const status = document.getElementById('status');
-            const resBox = document.getElementById('result-box');
-            
-            const pdfFile = document.getElementById('pdf_file').files[0];
-            const imgFile = document.getElementById('img_file').files[0];
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const staff = document.getElementById('staff').value;
-
-            if (!pdfFile || !staff || !phone) { 
-                alert("Anh Công ơi, nhớ điền đủ tên khách, số điện thoại và chọn file PDF nhé!"); 
-                return; 
-            }
-
-            btn.disabled = true;
-            status.innerText = "⏳ Hệ thống đang xử lý tài liệu... (Khoảng 10-20 giây)";
-
-            try {
-                const pdfUrl = await uploadFile(pdfFile);
-                let imgUrl = "";
-                if (imgFile) { imgUrl = await uploadImage(imgFile); }
-
-                const data = { n: name, p: phone, u: pdfUrl, i: imgUrl, s: staff };
-                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-                const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
-                
-                status.innerText = "✅ Đã tạo xong hồ sơ!";
-                resBox.style.display = "block";
-                document.getElementById('final-link').innerText = finalLink;
-            } catch (err) {
-                status.innerText = "❌ Lỗi kết nối server. Anh hãy thử lại lần nữa hoặc nén file PDF nhỏ lại nhé.";
-                console.error(err);
-            }
-            btn.disabled = false;
+        function gen() {
+            const d = {
+                n: document.getElementById('n').value,
+                p: document.getElementById('p').value,
+                u: document.getElementById('u').value,
+                s: document.getElementById('s').value
+            };
+            if(!d.u || !d.s) return alert("Vui lòng nhập Link PDF và Tên tư vấn!");
+            // Mã hóa an toàn cho URL
+            const str = btoa(encodeURIComponent(JSON.stringify(d)));
+            const link = window.location.href.replace('index.html', '') + 'profile.html?d=' + str;
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('result').innerText = link;
         }
     </script>
 </body>
