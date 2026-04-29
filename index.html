@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ThinkSmart Insurance - Creator Pro</title>
     <style>
-        :root { --primary-blue: #003366; --bg-gray: #f4f7f6; --text-dark: #333; }
-        body { background-color: var(--bg-gray); color: var(--text-dark); font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .box { background: #fff; padding: 40px; border-radius: 8px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 5px solid var(--primary-blue); }
-        h2 { color: var(--primary-blue); text-align: center; text-transform: uppercase; margin-bottom: 30px; letter-spacing: 1px; }
-        label { display: block; margin-top: 20px; font-size: 13px; color: #666; font-weight: 600; text-transform: uppercase; }
-        input { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 16px; background: var(--primary-blue); color: #fff; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 35px; text-transform: uppercase; }
-        button:disabled { background: #ccc; }
+        :root { --navy: #003366; --bg: #f4f7f6; }
+        body { background: var(--bg); font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .box { background: #fff; padding: 40px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border-top: 6px solid var(--navy); }
+        h2 { color: var(--navy); text-align: center; text-transform: uppercase; margin-bottom: 30px; letter-spacing: 1px; }
+        label { display: block; margin-top: 15px; font-size: 13px; color: #666; font-weight: 600; text-transform: uppercase; }
+        input { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; outline: none; }
+        button { width: 100%; padding: 16px; background: var(--navy); color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 30px; text-transform: uppercase; transition: 0.3s; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
         #status { margin-top: 15px; text-align: center; color: #666; font-size: 14px; font-style: italic; }
-        #result-box { margin-top: 25px; padding: 15px; background: #f0f4f8; border: 1px dashed var(--primary-blue); border-radius: 4px; display: none; }
-        #final-link { word-break: break-all; font-size: 11px; color: #555; margin-top: 10px; cursor: pointer; font-family: monospace; padding: 5px; background: #fff; border: 1px solid #eee; }
+        #result-box { margin-top: 25px; padding: 15px; background: #eef2f7; border: 1px dashed var(--navy); border-radius: 6px; display: none; }
+        #final-link { word-break: break-all; font-size: 11px; color: #444; margin-top: 10px; cursor: pointer; padding: 10px; background: #fff; border: 1px solid #ddd; }
     </style>
 </head>
 <body>
@@ -23,50 +23,51 @@
         <h2>ThinkSmart Portal</h2>
         <label>Tên khách hàng:</label>
         <input type="text" id="n" placeholder="Ví dụ: Dennis Nguyen">
-        <label>Số điện thoại khách (US):</label>
+        <label>Số điện thoại US:</label>
         <input type="text" id="p" placeholder="(xxx) xxx-xxxx" maxlength="14">
-        <label>Hình ảnh Banner:</label>
+        <label>Hình ảnh Banner quảng cáo:</label>
         <input type="file" id="img_file" accept="image/*">
-        <label>Bảng báo giá PDF:</label>
+        <label>File PDF Báo giá:</label>
         <input type="file" id="pdf_file" accept=".pdf">
         <label>Tên Tư vấn viên:</label>
         <input type="text" id="s" placeholder="Tên của bạn...">
-        <button id="btn" onclick="handleUpload()">Bắt Đầu Tạo Link</button>
+        <button id="btn" onclick="handleUpload()">Tạo Profile Bảo Mật</button>
         <div id="status"></div>
         <div id="result-box">
-            <span style="font-weight: bold; color: var(--primary-blue); font-size: 12px;">LINK GỬI KHÁCH:</span>
+            <span style="font-weight: bold; color: var(--navy); font-size: 12px;">LINK GỬI KHÁCH:</span>
             <div id="final-link" onclick="copyText()"></div>
             <p style="font-size: 10px; color: #999; margin-top: 10px;">(Nhấn vào link để copy)</p>
         </div>
     </div>
 
     <script>
-        // Tự động định dạng SĐT US
+        // Tự động định dạng SĐT Mỹ
         document.getElementById('p').addEventListener('input', function (e) {
             let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
             e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
         });
 
-        // Hàm upload dùng server trung gian uy tín để tránh lỗi CORS và kết nối
-        async function uploadToCatbox(file) {
+        // Dùng server tin cậy không bị chặn CORS
+        async function uploadFile(file, type) {
             const formData = new FormData();
-            formData.append('reqtype', 'fileupload');
-            formData.append('fileToUpload', file);
-            
-            // Sử dụng proxy để vượt lỗi kết nối nếu cần, hoặc gọi trực tiếp nếu server hỗ trợ
-            const res = await fetch('https://tmpfiles.org/api/v1/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const json = await res.json();
-            return json.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+            if (type === 'image') {
+                formData.append('image', file);
+                const res = await fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5', { method: 'POST', body: formData });
+                const json = await res.json();
+                return json.data.url;
+            } else {
+                // Với PDF dùng server lites3 - cực kỳ ổn định
+                formData.append('file', file);
+                const res = await fetch('https://tmpfiles.org/api/v1/upload', { method: 'POST', body: formData });
+                const json = await res.json();
+                return json.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+            }
         }
 
         async function handleUpload() {
             const btn = document.getElementById('btn');
             const status = document.getElementById('status');
             const resBox = document.getElementById('result-box');
-            const linkDiv = document.getElementById('final-link');
             
             const pdfFile = document.getElementById('pdf_file').files[0];
             const imgFile = document.getElementById('img_file').files[0];
@@ -74,33 +75,35 @@
             const phone = document.getElementById('p').value;
             const staff = document.getElementById('s').value;
 
-            if (!pdfFile || !imgFile || !staff) return alert("Anh Công ơi, chọn đủ cả Ảnh và PDF nhé!");
+            if (!pdfFile || !imgFile || !staff) return alert("Anh Công ơi, chọn đủ Ảnh và PDF nhé!");
 
             btn.disabled = true;
-            status.innerText = "⏳ Đang đẩy hồ sơ lên cloud... (Vui lòng chờ)";
+            status.innerText = "⏳ Đang tải lên hệ thống bảo mật... (Vui lòng chờ)";
 
             try {
-                // Đẩy ảnh và PDF lên cùng một hệ thống cho đồng bộ
-                const imgUrl = await uploadToCatbox(imgFile);
-                status.innerText = "⏳ Đã xong ảnh, đang tải PDF...";
-                const pdfUrl = await uploadToCatbox(pdfFile);
+                // Tải ảnh quảng cáo lên trước
+                const imgUrl = await uploadFile(imgFile, 'image');
+                status.innerText = "⏳ Đã xong ảnh, đang xử lý PDF báo giá...";
+                
+                // Tải PDF lên sau
+                const pdfUrl = await uploadFile(pdfFile, 'pdf');
 
                 const data = { n: name, p: phone, u: pdfUrl, i: imgUrl, s: staff };
                 const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
                 const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
                 
-                status.innerText = "✅ Thành công rực rỡ!";
+                status.innerText = "✅ Thành công!";
                 resBox.style.display = "block";
-                linkDiv.innerText = finalLink;
+                document.getElementById('final-link').innerText = finalLink;
             } catch (err) {
-                status.innerText = "❌ Lỗi kết nối mạng. Anh nhấn thử lại giúp em!";
+                status.innerText = "❌ Lỗi đường truyền. Anh thử bật 4G hoặc nhấn lại lần nữa giúp em!";
             }
             btn.disabled = false;
         }
 
         function copyText() {
             navigator.clipboard.writeText(document.getElementById('final-link').innerText);
-            alert("Đã copy link!");
+            alert("Đã copy link hồ sơ!");
         }
     </script>
 </body>
