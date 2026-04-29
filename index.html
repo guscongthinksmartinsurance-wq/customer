@@ -8,14 +8,13 @@
         :root { --navy: #003366; --bg: #f4f7f6; }
         body { background: var(--bg); font-family: -apple-system, sans-serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
         .box { background: #fff; padding: 35px; border-radius: 12px; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 6px solid var(--navy); }
-        h2 { color: var(--navy); text-align: center; text-transform: uppercase; margin-bottom: 25px; font-size: 20px; letter-spacing: 1px; }
+        h2 { color: var(--navy); text-align: center; text-transform: uppercase; margin-bottom: 25px; font-size: 20px; }
         label { display: block; margin-top: 15px; font-size: 12px; color: #666; font-weight: bold; text-transform: uppercase; }
         input { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; outline: none; }
         button { width: 100%; padding: 16px; background: var(--navy); color: #fff; border: none; border-radius: 6px; font-weight: bold; margin-top: 30px; cursor: pointer; text-transform: uppercase; }
-        button:disabled { background: #ccc; }
-        #status { margin-top: 15px; text-align: center; color: #666; font-size: 13px; font-style: italic; }
+        #status { margin-top: 15px; text-align: center; color: var(--navy); font-weight: bold; display: none; }
         #result-box { margin-top: 25px; padding: 15px; background: #eef2f7; border: 1px dashed var(--navy); border-radius: 6px; display: none; }
-        #final-link { word-break: break-all; font-size: 11px; color: #444; margin-top: 10px; cursor: pointer; padding: 10px; background: #fff; border: 1px solid #ddd; }
+        #final-link { word-break: break-all; font-size: 11px; color: #444; margin-top: 10px; cursor: pointer; padding: 10px; background: #fff; border: 1px solid #ddd; height: 80px; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -31,11 +30,12 @@
         <input type="file" id="pdf_file" accept=".pdf">
         <label>Tên Tư vấn viên:</label>
         <input type="text" id="s" placeholder="Tên của bạn...">
-        <button id="btn" onclick="handleUpload()">Tạo Link Bảo Mật</button>
-        <div id="status"></div>
+        <button id="btn" onclick="handleUpload()">Tạo Link Ngay</button>
+        <div id="status">✅ ĐANG TẠO HỒ SƠ...</div>
         <div id="result-box">
             <span style="font-weight: bold; color: var(--navy); font-size: 12px;">LINK GỬI KHÁCH:</span>
             <div id="final-link" onclick="copyText()"></div>
+            <p style="font-size: 10px; color: #999; margin-top: 10px;">(Nhấn vào link để copy)</p>
         </div>
     </div>
 
@@ -46,59 +46,48 @@
             e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
         });
 
-        // Hàm upload tập trung dùng ImgBB cho sự ổn định tuyệt đối
-        async function uploadToCloud(file) {
-            const formData = new FormData();
-            formData.append('image', file);
-            // Sử dụng Key dự phòng để tránh giới hạn
-            const res = await fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5', {
-                method: 'POST',
-                body: formData
+        function readFile(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
             });
-            const json = await res.json();
-            return json.data.url;
         }
 
         async function handleUpload() {
-            const btn = document.getElementById('btn');
             const status = document.getElementById('status');
-            const pdfFile = document.getElementById('pdf_file').files[0];
+            const resBox = document.getElementById('result-box');
             const imgFile = document.getElementById('img_file').files[0];
+            const pdfFile = document.getElementById('pdf_file').files[0];
 
-            if (!pdfFile || !imgFile) return alert("Chọn đủ Ảnh và PDF anh nhé!");
+            if (!imgFile || !pdfFile) return alert("Anh Công chọn đủ Ảnh và PDF nhé!");
 
-            btn.disabled = true;
-            status.innerText = "⏳ Đang kết nối server bảo mật...";
+            status.style.display = "block";
 
-            try {
-                // Tải ảnh trước
-                status.innerText = "⏳ Bước 1/2: Tải hình ảnh quảng cáo...";
-                const imgUrl = await uploadToCloud(imgFile);
-                
-                // Tải PDF sau (Chuyển sang cơ chế nén link để tránh lỗi kết nối PDF)
-                status.innerText = "⏳ Bước 2/2: Đang mã hóa hồ sơ PDF...";
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const pdfBase64 = e.target.result;
-                    const data = { n: document.getElementById('n').value, p: document.getElementById('p').value, u: pdfBase64, i: imgUrl, s: document.getElementById('s').value };
-                    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-                    const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
-                    
-                    status.innerText = "✅ Thành công!";
-                    document.getElementById('result-box').style.display = "block";
-                    document.getElementById('final-link').innerText = finalLink;
-                    btn.disabled = false;
-                };
-                reader.readAsDataURL(pdfFile);
-            } catch (err) {
-                status.innerText = "❌ Lỗi mạng. Anh hãy nhấn lại hoặc dùng 4G nhé!";
-                btn.disabled = false;
-            }
+            // Chuyển cả ảnh và PDF thành chuỗi ký tự (Base64)
+            const imgBase64 = await readFile(imgFile);
+            const pdfBase64 = await readFile(pdfFile);
+
+            const data = {
+                n: document.getElementById('n').value,
+                p: document.getElementById('p').value,
+                i: imgBase64,
+                u: pdfBase64,
+                s: document.getElementById('s').value
+            };
+
+            // Mã hóa toàn bộ vào URL
+            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+            const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
+
+            status.style.display = "none";
+            resBox.style.display = "block";
+            document.getElementById('final-link').innerText = finalLink;
         }
 
         function copyText() {
             navigator.clipboard.writeText(document.getElementById('final-link').innerText);
-            alert("Đã copy link!");
+            alert("Đã copy link hồ sơ!");
         }
     </script>
 </body>
