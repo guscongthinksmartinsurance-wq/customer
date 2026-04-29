@@ -7,11 +7,13 @@
     <style>
         body { background: #121212; color: #fff; font-family: 'Times New Roman', serif; display: flex; justify-content: center; padding: 20px; margin: 0; }
         .form-box { background: #1a1a1a; padding: 40px; border: 1px solid #c5a059; width: 100%; max-width: 450px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); }
-        h2 { color: #c5a059; text-align: center; letter-spacing: 3px; text-transform: uppercase; }
+        h2 { color: #c5a059; text-align: center; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 30px; }
         label { display: block; margin-top: 15px; font-size: 11px; color: #c5a059; text-transform: uppercase; }
-        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; outline: none; }
-        input[type="file"] { font-size: 12px; }
-        button { width: 100%; padding: 16px; background: #c5a059; color: #000; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px; }
+        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; outline: none; border-radius: 2px; }
+        input:focus { border-color: #c5a059; }
+        input[type="file"] { font-size: 12px; padding: 10px; background: #222; cursor: pointer; }
+        button { width: 100%; padding: 16px; background: #c5a059; color: #000; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
+        button:hover { background: #fff; }
         button:disabled { background: #444; color: #888; }
         #status { margin-top: 15px; font-size: 13px; text-align: center; color: #c5a059; font-style: italic; }
         #result-box { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; }
@@ -25,12 +27,12 @@
         <input type="text" id="name" placeholder="Ví dụ: Dennis Nguyen">
         
         <label>Số điện thoại khách:</label>
-        <input type="text" id="phone" placeholder="Ví dụ: 602-xxx-xxxx">
+        <input type="text" id="phone" placeholder="Số điện thoại nhận tin...">
 
         <label>Bảng báo giá (PDF):</label>
         <input type="file" id="pdf_file" accept=".pdf">
 
-        <label>Hình ảnh chân dung (Nếu có):</label>
+        <label>Hình ảnh hồ sơ (Nếu có):</label>
         <input type="file" id="img_file" accept="image/*">
 
         <label>Tên Tư vấn viên:</label>
@@ -46,16 +48,22 @@
     </div>
 
     <script>
+        // Sử dụng một dịch vụ upload mạnh mẽ và hỗ trợ CORS tốt hơn
         async function uploadFile(file) {
             let formData = new FormData();
-            formData.append("reqtype", "fileupload");
-            formData.append("fileToUpload", file);
-            // Dùng Catbox (Nhanh và ổn định hơn cho PDF)
-            const res = await fetch("https://cors-anywhere.herokuapp.com/https://catbox.moe/user/api.php", { 
+            formData.append("file", file);
+            // Sử dụng dịch vụ tmpfiles.org - Tốc độ cao và link trực tiếp
+            const res = await fetch("https://tmpfiles.org/api/v1/upload", { 
                 method: "POST", 
                 body: formData 
             });
-            return await res.text();
+            const json = await res.json();
+            if (json.status === "success") {
+                // Chuyển link từ /download/ sang link trực tiếp
+                return json.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+            } else {
+                throw new Error("Upload failed");
+            }
         }
 
         async function uploadImage(file) {
@@ -78,27 +86,27 @@
             const staff = document.getElementById('staff').value;
 
             if (!pdfFile || !staff || !phone) { 
-                alert("Vui lòng điền đủ thông tin!"); 
+                alert("Anh Công ơi, nhớ điền đủ tên khách, số điện thoại và chọn file PDF nhé!"); 
                 return; 
             }
 
             btn.disabled = true;
-            status.innerText = "⏳ Đang tăng tốc xử lý... Vui lòng đợi trong giây lát.";
+            status.innerText = "⏳ Hệ thống đang xử lý tài liệu... (Khoảng 10-20 giây)";
 
             try {
                 const pdfUrl = await uploadFile(pdfFile);
                 let imgUrl = "";
                 if (imgFile) { imgUrl = await uploadImage(imgFile); }
 
-                const data = { n: name, p: phone, u: pdfUrl.trim(), i: imgUrl, s: staff };
+                const data = { n: name, p: phone, u: pdfUrl, i: imgUrl, s: staff };
                 const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
                 const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
                 
-                status.innerText = "✅ Đã tạo xong!";
+                status.innerText = "✅ Đã tạo xong hồ sơ!";
                 resBox.style.display = "block";
                 document.getElementById('final-link').innerText = finalLink;
             } catch (err) {
-                status.innerText = "❌ Lỗi kết nối. Anh hãy thử nhấn lại lần nữa nhé!";
+                status.innerText = "❌ Lỗi kết nối server. Anh hãy thử lại lần nữa hoặc nén file PDF nhỏ lại nhé.";
                 console.error(err);
             }
             btn.disabled = false;
