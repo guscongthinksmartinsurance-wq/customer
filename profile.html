@@ -1,50 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>National Life Group - Client Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>National Life Group - Portal</title>
     <style>
-        body { background: #0a0a0a; color: #fff; font-family: "Times New Roman", serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { max-width: 400px; width: 100%; border: 1px solid #c5a059; padding: 40px; text-align: center; }
-        .brand { color: #c5a059; letter-spacing: 5px; font-size: 18px; text-transform: uppercase; }
-        h2 { font-weight: normal; font-size: 28px; margin: 20px 0; }
-        .btn { display: block; padding: 15px; background: #c5a059; color: #000; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 30px; }
+        body { background: #0a0a0a; color: #fff; font-family: "Times New Roman", serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .card { max-width: 400px; width: 100%; border: 1px solid #c5a059; padding: 40px; text-align: center; box-shadow: 0 10px 50px rgba(0,0,0,1); }
+        .brand { color: #c5a059; letter-spacing: 5px; font-size: 16px; text-transform: uppercase; margin-bottom: 10px; }
+        h2 { font-weight: normal; font-size: 26px; margin: 20px 0; color: #fff; }
+        .btn { display: block; padding: 18px; background: #c5a059; color: #000; text-decoration: none; font-weight: bold; text-transform: uppercase; margin-top: 30px; letter-spacing: 2px; }
+        .footer { margin-top: 40px; font-size: 10px; color: #444; border-top: 1px solid #222; padding-top: 20px; }
     </style>
 </head>
 <body>
-    <div class="container" id="content"></div>
+    <div id="main" class="card">Đang tải hồ sơ bảo mật...</div>
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const d = params.get('d');
-        if (d) {
-            const data = JSON.parse(decodeURIComponent(escape(atob(d))));
-            document.getElementById('content').innerHTML = `
-                <div class="brand">National Life Group</div>
-                <p style="color:#666; font-size:12px">Người hỗ trợ: ${data.s}</p>
-                <div style="border-bottom:1px solid #333; margin:20px 0"></div>
-                <h2>${data.n}</h2>
-                <p style="color:#888">Định danh: ${data.p}</p>
-                <a href="${data.u}" class="btn">Xem Bảng Báo Giá PDF</a>
-            `;
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const d = params.get('d');
+            if (d) {
+                const data = JSON.parse(decodeURIComponent(atob(d)));
+                document.getElementById('main').innerHTML = `
+                    <div class="brand">National Life Group</div>
+                    <p style="color:#666; font-size:12px; margin:0;">Sale Manager: Công Nguyễn</p>
+                    <p style="color:#888; font-size:11px; margin-top:5px;">Người hỗ trợ: ${data.s}</p>
+                    <div style="border-bottom:1px solid #333; margin:25px 0"></div>
+                    <h2>${data.n || "Khách hàng"}</h2>
+                    <p style="color:#555; font-size:13px">Số điện thoại: ${data.p || "N/A"}</p>
+                    <a href="${data.u}" class="btn" target="_blank">Mở Bảng Báo Giá PDF</a>
+                    <div class="footer">Hồ sơ cá nhân bảo mật. Chỉ dành cho người nhận.</div>
+                `;
+            } else {
+                document.getElementById('main').innerHTML = "Không tìm thấy dữ liệu.";
+            }
+        } catch (e) {
+            document.getElementById('main').innerHTML = "Lỗi truy cập. Vui lòng liên hệ Tư vấn viên.";
         }
-    <script>
-    const params = new URLSearchParams(window.location.search);
-    const d = params.get('d');
-    if (d) {
-        const data = JSON.parse(decodeURIComponent(escape(atob(d))));
-        document.getElementById('content').innerHTML = `
-            <div class="brand">National Life Group</div>
-            <p style="color:#666; font-size:12px">Người hỗ trợ: ${data.s}</p>
-            <div style="border-bottom:1px solid #333; margin:20px 0"></div>
-            <h2>${data.n}</h2>
-            <p style="color:#888">Định danh: ${data.p}</p>
-            
-            <a href="${data.u}" class="btn" target="_blank">Xem Bảng Báo Giá PDF</a>
-            
-            ${data.i ? `<img src="${data.i}" style="width:100%; margin-top:30px; border:1px solid #333;">` : ''}
-            
-            <div style="border-bottom:1px solid #333; margin-top:40px; margin-bottom:20px"></div>
-            <p style="font-size:11px; color:#444">© 2026 Secure Portal. Bảo mật bởi Công Nguyễn.</p>
-        `;
-    }
-</script>
+    </script>
+</body>
+</html>
