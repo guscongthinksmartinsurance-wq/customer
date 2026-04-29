@@ -12,9 +12,10 @@
         label { display: block; margin-top: 15px; font-size: 12px; color: #666; font-weight: bold; text-transform: uppercase; }
         input { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; outline: none; }
         button { width: 100%; padding: 16px; background: var(--navy); color: #fff; border: none; border-radius: 6px; font-weight: bold; margin-top: 30px; cursor: pointer; text-transform: uppercase; }
-        #status { margin-top: 15px; text-align: center; color: var(--navy); font-weight: bold; display: none; }
+        button:disabled { background: #ccc; }
+        #status { margin-top: 15px; text-align: center; color: #666; font-size: 13px; font-style: italic; }
         #result-box { margin-top: 25px; padding: 15px; background: #eef2f7; border: 1px dashed var(--navy); border-radius: 6px; display: none; }
-        #final-link { word-break: break-all; font-size: 11px; color: #444; margin-top: 10px; cursor: pointer; padding: 10px; background: #fff; border: 1px solid #ddd; height: 80px; overflow-y: auto; }
+        #final-link { word-break: break-all; font-size: 13px; color: var(--navy); margin-top: 10px; cursor: pointer; padding: 10px; background: #fff; border: 1px solid #ddd; font-weight: bold; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -24,14 +25,14 @@
         <input type="text" id="n" placeholder="Dennis Nguyen">
         <label>Số điện thoại US:</label>
         <input type="text" id="p" placeholder="(xxx) xxx-xxxx" maxlength="14">
-        <label>Hình ảnh Quảng cáo:</label>
+        <label>Hình ảnh Banner quảng cáo:</label>
         <input type="file" id="img_file" accept="image/*">
         <label>File PDF Báo giá:</label>
         <input type="file" id="pdf_file" accept=".pdf">
         <label>Tên Tư vấn viên:</label>
         <input type="text" id="s" placeholder="Tên của bạn...">
-        <button id="btn" onclick="handleUpload()">Tạo Link Ngay</button>
-        <div id="status">✅ ĐANG TẠO HỒ SƠ...</div>
+        <button id="btn" onclick="handleUpload()">Tạo Link Hồ Sơ</button>
+        <div id="status"></div>
         <div id="result-box">
             <span style="font-weight: bold; color: var(--navy); font-size: 12px;">LINK GỬI KHÁCH:</span>
             <div id="final-link" onclick="copyText()"></div>
@@ -40,49 +41,59 @@
     </div>
 
     <script>
-        // Định dạng SĐT Mỹ
         document.getElementById('p').addEventListener('input', function (e) {
             let x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
             e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
         });
 
-        function readFile(file) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(file);
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            // Sử dụng dịch vụ chuẩn, ổn định và link cực ngắn
+            const res = await fetch('https://tmpfiles.org/api/v1/upload', {
+                method: 'POST',
+                body: formData
             });
+            const json = await res.json();
+            return json.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
         }
 
         async function handleUpload() {
+            const btn = document.getElementById('btn');
             const status = document.getElementById('status');
-            const resBox = document.getElementById('result-box');
             const imgFile = document.getElementById('img_file').files[0];
             const pdfFile = document.getElementById('pdf_file').files[0];
 
             if (!imgFile || !pdfFile) return alert("Anh Công chọn đủ Ảnh và PDF nhé!");
 
-            status.style.display = "block";
+            btn.disabled = true;
+            status.innerText = "⏳ Đang kết nối server bảo mật...";
 
-            // Chuyển cả ảnh và PDF thành chuỗi ký tự (Base64)
-            const imgBase64 = await readFile(imgFile);
-            const pdfBase64 = await readFile(pdfFile);
+            try {
+                status.innerText = "⏳ Bước 1/2: Đang tải hình ảnh...";
+                const imgUrl = await uploadFile(imgFile);
+                
+                status.innerText = "⏳ Bước 2/2: Đang tải hồ sơ PDF...";
+                const pdfUrl = await uploadFile(pdfFile);
 
-            const data = {
-                n: document.getElementById('n').value,
-                p: document.getElementById('p').value,
-                i: imgBase64,
-                u: pdfBase64,
-                s: document.getElementById('s').value
-            };
+                const data = {
+                    n: document.getElementById('n').value,
+                    p: document.getElementById('p').value,
+                    i: imgUrl,
+                    u: pdfUrl,
+                    s: document.getElementById('s').value
+                };
 
-            // Mã hóa toàn bộ vào URL
-            const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-            const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
+                const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+                const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
 
-            status.style.display = "none";
-            resBox.style.display = "block";
-            document.getElementById('final-link').innerText = finalLink;
+                status.innerText = "✅ Thành công!";
+                document.getElementById('result-box').style.display = "block";
+                document.getElementById('final-link').innerText = finalLink;
+            } catch (err) {
+                status.innerText = "❌ Lỗi kết nối. Anh hãy nhấn lại hoặc dùng 4G nhé!";
+            }
+            btn.disabled = false;
         }
 
         function copyText() {
