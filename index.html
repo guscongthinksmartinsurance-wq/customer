@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NLG - Creator Pro</title>
+    <title>NLG - Creator Ultra Fast</title>
     <style>
         body { background: #121212; color: #fff; font-family: serif; display: flex; justify-content: center; padding: 20px; }
-        .box { background: #1a1a1a; padding: 30px; border: 1px solid #c5a059; width: 100%; max-width: 420px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: #c5a059; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+        .box { background: #1a1a1a; padding: 30px; border: 1px solid #c5a059; width: 100%; max-width: 420px; }
+        h2 { color: #c5a059; text-align: center; text-transform: uppercase; }
         label { display: block; margin-top: 15px; font-size: 11px; color: #c5a059; text-transform: uppercase; }
-        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; outline: none; }
-        input:focus { border-color: #c5a059; }
-        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; color: #000; }
-        button:disabled { background: #444; color: #888; }
-        #status { margin-top: 15px; font-size: 13px; text-align: center; color: #c5a059; font-style: italic; }
-        #result { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; font-size: 12px; color: #aaa; }
+        input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 25px; text-transform: uppercase; }
+        #result-box { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; }
+        #final-link { word-break: break-all; font-size: 10px; color: #888; height: 100px; overflow-y: scroll; margin-top: 10px; border: 1px solid #222; padding: 5px; }
     </style>
 </head>
 <body>
@@ -23,68 +21,47 @@
         <label>Tên khách hàng:</label>
         <input type="text" id="n" placeholder="Tên khách...">
         <label>Số điện thoại:</label>
-        <input type="text" id="p" placeholder="Ví dụ: 8304282519">
-        <label>Bảng báo giá (PDF):</label>
-        <input type="file" id="pdf_file" accept=".pdf">
+        <input type="text" id="p" placeholder="Số điện thoại...">
+        <label>Chọn File PDF:</label>
+        <input type="file" id="f" accept=".pdf">
         <label>Tên Tư vấn viên:</label>
         <input type="text" id="s" placeholder="Tên của bạn...">
 
-        <button id="btn" onclick="handleUpload()">Bắt Đầu Tạo Link</button>
-        <div id="status"></div>
-        <div id="result"></div>
+        <button onclick="generate()">Tạo Link Ngay Lập Tức</button>
+        
+        <div id="result-box">
+            <span style="color: #c5a059; font-size: 12px; font-weight: bold;">LINK ĐÃ TẠO (NHẤN ĐỂ COPY):</span>
+            <div id="final-link" onclick="copyLink()"></div>
+            <p style="font-size: 10px; color: #666; margin-top: 10px;">* Lưu ý: Link này rất dài, hãy dùng tính năng chèn link khi gửi cho khách.</p>
+        </div>
     </div>
 
     <script>
-        // Dùng File.io với phương thức xử lý lỗi CORS bằng Proxy
-        async function uploadPDF(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Sử dụng một proxy tin cậy để vượt rào cản kết nối
-            const proxy = "https://api.allorigins.win/raw?url=";
-            const target = encodeURIComponent("https://file.io/?expires=1w");
-            
-            const res = await fetch("https://file.io/?expires=1w", {
-                method: 'POST',
-                body: formData
-            });
-            const json = await res.json();
-            if (json.success) return json.link;
-            throw new Error("Fail");
-        }
-
-        async function handleUpload() {
-            const btn = document.getElementById('btn');
-            const status = document.getElementById('status');
-            const resDiv = document.getElementById('result');
-            
-            const pdfFile = document.getElementById('pdf_file').files[0];
+        function generate() {
+            const file = document.getElementById('f').files[0];
             const name = document.getElementById('n').value;
             const phone = document.getElementById('p').value;
             const staff = document.getElementById('s').value;
 
-            if (!pdfFile || !staff || !phone) return alert("Anh Công ơi, điền đủ thông tin giúp em!");
+            if (!file || !staff) return alert("Vui lòng chọn file và điền tên nhân viên!");
 
-            btn.disabled = true;
-            status.innerText = "⏳ Đang tạo hồ sơ bảo mật... (Tầm 10 giây)";
-
-            try {
-                // Đẩy PDF lên server bảo mật
-                const pdfUrl = await uploadPDF(pdfFile);
-
-                const data = { n: name, p: phone, u: pdfUrl, s: staff };
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const pdfBase64 = e.target.result;
+                const data = { n: name, p: phone, u: pdfBase64, s: staff };
                 const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-                const finalLink = window.location.href.split('?')[0].replace('index.html', '') + 'profile.html?d=' + encoded;
+                const link = window.location.href.replace('index.html', '') + 'profile.html?d=' + encoded;
                 
-                status.innerText = "✅ Thành công!";
-                resDiv.style.display = "block";
-                resDiv.innerText = finalLink;
-            } catch (err) {
-                // Nếu vẫn lỗi kết nối, dùng phương án dự phòng ngay lập tức
-                status.innerText = "❌ Lỗi server. Anh hãy dán Link OneDrive tạm vào bản cũ nhé!";
-                console.error(err);
-            }
-            btn.disabled = false;
+                document.getElementById('result-box').style.display = 'block';
+                document.getElementById('final-link').innerText = link;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function copyLink() {
+            const link = document.getElementById('final-link').innerText;
+            navigator.clipboard.writeText(link);
+            alert("Đã copy link dài vào bộ nhớ tạm!");
         }
     </script>
 </body>
