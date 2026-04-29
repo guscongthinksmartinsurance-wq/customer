@@ -11,37 +11,91 @@
         label { display: block; margin-top: 15px; font-size: 11px; color: #c5a059; text-transform: uppercase; }
         input { width: 100%; padding: 12px; margin-top: 5px; background: #222; border: 1px solid #333; color: #fff; box-sizing: border-box; }
         button { width: 100%; padding: 15px; background: #c5a059; border: none; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+        button:disabled { background: #444; color: #888; }
+        #status { margin-top: 15px; font-size: 13px; text-align: center; color: #c5a059; }
         #result { margin-top: 20px; padding: 15px; background: #000; border: 1px dashed #c5a059; display: none; word-break: break-all; font-size: 12px; color: #aaa; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2>Tạo Hồ Sơ Khách</h2>
+        <h2>Tạo Hồ Sơ Tức Thì</h2>
         <label>Tên khách hàng:</label>
-        <input type="text" id="n" placeholder="Ví dụ: Anh Dennis">
+        <input type="text" id="n" placeholder="Tên khách...">
+        
         <label>Số điện thoại:</label>
-        <input type="text" id="p" placeholder="Ví dụ: 8304282519">
-        <label>Link PDF (OneDrive):</label>
-        <input type="text" id="u" placeholder="Dán link PDF vào đây...">
+        <input type="text" id="p" placeholder="Số điện thoại...">
+
+        <label>Bảng báo giá (PDF):</label>
+        <input type="file" id="pdf_file" accept=".pdf">
+
+        <label>Hình ảnh (Nếu có):</label>
+        <input type="file" id="img_file" accept="image/*">
+
         <label>Tên Tư vấn viên:</label>
         <input type="text" id="s" placeholder="Tên của bạn...">
-        <button onclick="gen()">Tạo Link Gửi Khách</button>
+
+        <button id="btn" onclick="handleUpload()">Bắt Đầu Tạo Link</button>
+        <div id="status"></div>
         <div id="result"></div>
     </div>
+
     <script>
-        function gen() {
-            const d = {
-                n: document.getElementById('n').value,
-                p: document.getElementById('p').value,
-                u: document.getElementById('u').value,
-                s: document.getElementById('s').value
-            };
-            if(!d.u || !d.s) return alert("Vui lòng nhập Link PDF và Tên tư vấn!");
-            // Mã hóa an toàn cho URL
-            const str = btoa(encodeURIComponent(JSON.stringify(d)));
-            const link = window.location.href.replace('index.html', '') + 'profile.html?d=' + str;
-            document.getElementById('result').style.display = 'block';
-            document.getElementById('result').innerText = link;
+        async function uploadFile(file) {
+            let formData = new FormData();
+            formData.append("file", file);
+            // Sử dụng file.io - Dịch vụ này hỗ trợ tốt hơn cho việc up PDF từ trình duyệt
+            const res = await fetch("https://file.io/?expires=1w", { method: "POST", body: formData });
+            const json = await res.json();
+            if (!json.success) throw new Error("Upload PDF thất bại");
+            return json.link;
+        }
+
+        async function uploadImage(file) {
+            let formData = new FormData();
+            formData.append("image", file);
+            const res = await fetch("https://api.imgbb.com/1/upload?key=6d207e02198a847aa98d0a2a901485a5", { method: "POST", body: formData });
+            const json = await res.json();
+            return json.data.url;
+        }
+
+        async function handleUpload() {
+            const btn = document.getElementById('btn');
+            const status = document.getElementById('status');
+            const resDiv = document.getElementById('result');
+            
+            const pdfFile = document.getElementById('pdf_file').files[0];
+            const imgFile = document.getElementById('img_file').files[0];
+            const name = document.getElementById('n').value;
+            const phone = document.getElementById('p').value;
+            const staff = document.getElementById('s').value;
+
+            if (!pdfFile || !staff || !phone) return alert("Điền đủ tên, sđt và chọn PDF anh nhé!");
+
+            btn.disabled = true;
+            status.innerText = "⏳ Đang tải dữ liệu lên... (Đợi khoảng 15-20s)";
+
+            try {
+                // Tải PDF
+                const pdfUrl = await uploadFile(pdfFile);
+                
+                // Tải Ảnh (nếu có)
+                let imgUrl = "";
+                if (imgFile) {
+                    imgUrl = await uploadImage(imgFile);
+                }
+
+                const data = { n: name, p: phone, u: pdfUrl, i: imgUrl, s: staff };
+                const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+                const finalLink = window.location.href.replace('index.html', '') + 'profile.html?d=' + encoded;
+                
+                status.innerText = "✅ Hoàn tất!";
+                resDiv.style.display = "block";
+                resDiv.innerText = finalLink;
+            } catch (err) {
+                status.innerText = "❌ Lỗi: Có thể do mạng yếu hoặc file quá nặng. Hãy thử lại!";
+                console.error(err);
+            }
+            btn.disabled = false;
         }
     </script>
 </body>
